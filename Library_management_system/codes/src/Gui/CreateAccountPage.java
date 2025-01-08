@@ -133,7 +133,12 @@ public class CreateAccountPage extends JFrame {
         // Back to Login Button
         JButton backButton = createStyledButton("Back to Login", false);
         backButton.setBounds(75, 630, 250, 40);
-        backButton.addActionListener(e -> dispose());
+        backButton.addActionListener(e -> {
+            LoginPage loginPage = new LoginPage(); // Instantiate the LoginPage class
+            loginPage.setVisible(true); // Make the LoginPage visible
+            ((JFrame) SwingUtilities.getWindowAncestor(backButton)).dispose(); // Dispose the current window
+        });
+
         mainPanel.add(backButton);
 
         add(mainPanel);

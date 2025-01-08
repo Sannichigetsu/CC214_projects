@@ -17,7 +17,7 @@ public class DB_Connection {
 
     private static void loadProperties() throws IOException {
         String env = System.getProperty("env", "local"); // Default to local if not specified
-        String configFile = String.format("Library_management_system/codes/src/config.properties", env);
+        String configFile = String.format("Library_management_system/config.properties", env);
 
         try (FileInputStream input = new FileInputStream(configFile)) {
             properties.load(input);

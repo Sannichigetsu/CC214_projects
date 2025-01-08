@@ -308,19 +308,19 @@ public class UserAccountDashboard extends JPanel {
                         3
                 );
 
-                if (userDB.updateUser(updatedUser)) {
-                    JOptionPane.showMessageDialog(dialog,
-                            "User updated successfully!",
-                            "Success",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    dialog.dispose();
-                    refreshTableData();
-                } else {
-                    JOptionPane.showMessageDialog(dialog,
-                            "Failed to update user. Please try again.",
-                            "Update Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
+//                if (userDB.updateUser(updatedUser)) {
+//                    JOptionPane.showMessageDialog(dialog,
+//                            "User updated successfully!",
+//                            "Success",
+//                            JOptionPane.INFORMATION_MESSAGE);
+//                    dialog.dispose();
+//                    refreshTableData();
+//                } else {
+//                    JOptionPane.showMessageDialog(dialog,
+//                            "Failed to update user. Please try again.",
+//                            "Update Error",
+//                            JOptionPane.ERROR_MESSAGE);
+//                }
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(dialog,
                         "Error updating user: " + ex.getMessage(),

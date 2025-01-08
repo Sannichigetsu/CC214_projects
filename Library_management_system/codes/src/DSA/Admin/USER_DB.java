@@ -5,19 +5,16 @@ import java.sql.*;
 import java.util.Hashtable;
 
 public class USER_DB {
-    private static Hashtable<Integer, users> userCache;
+    private static Hashtable<Integer, users> userCache = new Hashtable<>();  // Initialize here
 
     public USER_DB() {
-        this.userCache = new Hashtable<>();
+        // Constructor can be empty now since we initialize the cache above
     }
-
-    //todo not yet fixed
     public static boolean add(users user) {
         try (Connection connection = DriverManager.getConnection(DB_Connection.url, DB_Connection.user, DB_Connection.pass);
              PreparedStatement register = connection.prepareStatement(
                      "INSERT INTO " + DB_Connection.tab +
-                             "(Id, lastname,firstname, password, email, Gender, `Limit`) VALUES(?, ?, ?, ?, ?, ?, ?)")) {
-
+                             "(Id, lastName, firstName, password, email, Gender, `Limit`) VALUES(?, ?, ?, ?, ?, ?, ?)")) {
 
             register.setInt(1, user.getId());
             register.setString(2, user.getLastName());
@@ -40,64 +37,61 @@ public class USER_DB {
                 System.out.println("User with this ID already exists");
             } else {
                 System.out.println("Error adding user: " + e.getMessage());
-                e.printStackTrace(); // Add this for better debugging
             }
             return false;
         }
     }
-    //todo needs GUI for registration
-    public boolean validate(int id, String firstName, String password) {
+
+    public boolean updateUser(users user) {
+        try (Connection connection = DriverManager.getConnection(DB_Connection.url, DB_Connection.user, DB_Connection.pass);
+             PreparedStatement update = connection.prepareStatement(
+                     "UPDATE " + DB_Connection.tab +
+                             " SET lastName = ?, firstName = ?, password = ?, email = ?, Gender = ?, `limit` = ? " +
+                             "WHERE Id = ?")) {
+
+            update.setString(1, user.getLastName());
+            update.setString(2, user.getFirstName());
+            update.setString(3, user.getPass());
+            update.setString(4, user.getEmail());
+            update.setString(5, user.getGender());
+            update.setInt(6, user.getLimit());
+            update.setInt(7, user.getId());
+
+            int rowsAffected = update.executeUpdate();
+
+            if (rowsAffected > 0) {
+                // Update cache if database update was successful
+                userCache.put(user.getId(), user);
+                return true;
+            }
+            return false;
+
+        } catch (SQLException e) {
+            System.out.println("Error updating user: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public static boolean validate(int id, String password) {
         try (Connection connection = DriverManager.getConnection(DB_Connection.url, DB_Connection.user, DB_Connection.pass);
              PreparedStatement valid = connection.prepareStatement(
                      "SELECT * FROM " + DB_Connection.tab +
-                             " WHERE Id = ? AND firstname = ? AND password = ?")) {
+                             " WHERE Id = ? AND password = ?")) {
 
             valid.setInt(1, id);
-            valid.setString(2, firstName);
-            valid.setString(3, password);
+            valid.setString(2, password);
 
             ResultSet rs = valid.executeQuery();
             return rs.next();
+        } catch (SQLException e) {
+            System.out.println("Error validating user: " + e.getMessage());
+            return false;
+        }
     }
 
-    //todo used to check for existing account
-//    public static boolean checkUser(int id) {
-//        // First check cache
-//        if (userCache.containsKey(id)) {
-//            return true;
-//        }
-//
-//        try (Connection connection = DriverManager.getConnection(DB_Connection.url, DB_Connection.user, DB_Connection.pass);
-//             PreparedStatement check = connection.prepareStatement(
-//                     "SELECT * FROM " + DB_Connection.tab + " WHERE Id = ?")) {
-//
-//            check.setInt(1, id);
-//            ResultSet rs = check.executeQuery();
-//
-//            if (rs.next()) {
-//                users user = new users(
-//                        rs.getInt("Id"),
-//                        rs.getString("lastname"),
-//                        rs.getString("firstname"),
-//                        rs.getString("password"),
-//                        rs.getString("email"),
-//                        rs.getString("Gender"),
-//                        rs.getInt("limit")
-//                );
-//                userCache.put(id, user);
-//                return true;
-//            }
-//            return false;
-//
-//        } catch (SQLException e) {
-//            System.out.println("Error checking user: " + e.getMessage());
-//            return false;
-//        }
-//    }
+        public Hashtable<Integer, users> loadAllUsers() {
+            userCache.clear(); // Clear the cache before reloading
 
-    // todo used to display all users in table or for the future add delete user method
-    public Hashtable<Integer, users> loadAllUsers() {
-        userCache.clear(); // Clear the cache before reloading
         try (Connection connection = DriverManager.getConnection(DB_Connection.url, DB_Connection.user, DB_Connection.pass);
              PreparedStatement stmt = connection.prepareStatement("SELECT * FROM " + DB_Connection.tab);
              ResultSet result = stmt.executeQuery()) {
@@ -105,8 +99,8 @@ public class USER_DB {
             while (result.next()) {
                 users user = new users(
                         result.getInt("Id"),
-                        result.getString("lastname"),
-                        result.getString("firstname"),
+                        result.getString("lastName"),  // Fixed column name
+                        result.getString("firstName"), // Fixed column name
                         result.getString("password"),
                         result.getString("email"),
                         result.getString("Gender"),
@@ -117,11 +111,10 @@ public class USER_DB {
 
         } catch (SQLException e) {
             System.out.println("Error loading users: " + e.getMessage());
-            e.printStackTrace(); // Add this for better debugging
         }
         return userCache;
     }
-    // Get a user from cache or database
+
     public users getUser(int id) {
         if (userCache.containsKey(id)) {
             return userCache.get(id);
@@ -137,8 +130,8 @@ public class USER_DB {
             if (rs.next()) {
                 users user = new users(
                         rs.getInt("Id"),
-                        rs.getString("lastname"),
-                        rs.getString("first name"),
+                        rs.getString("lastName"),  // Fixed column name
+                        rs.getString("firstName"), // Fixed column name
                         rs.getString("password"),
                         rs.getString("email"),
                         rs.getString("Gender"),
@@ -154,21 +147,15 @@ public class USER_DB {
 
         return null;
     }
+
     public boolean deleteUser(int id) {
         try (Connection connection = DriverManager.getConnection(DB_Connection.url, DB_Connection.user, DB_Connection.pass);
              PreparedStatement del = connection.prepareStatement("DELETE FROM " + DB_Connection.tab + " WHERE Id = ?")) {
-
-//            // First check if user exists
-//            if (!checkUser(id)) {
-//                System.out.println("No user found with ID: " + id);
-//                return false;
-//            }
 
             del.setInt(1, id);
             int rowsAffected = del.executeUpdate();
 
             if (rowsAffected > 0) {
-                // Remove from cache if successfully deleted from database
                 userCache.remove(id);
                 System.out.println("User deleted successfully");
                 return true;
@@ -178,50 +165,10 @@ public class USER_DB {
             }
 
         } catch (SQLException e) {
-            if (e.getSQLState().equals("23000")) { // Foreign key constraint violation
+            if (e.getSQLState().equals("23000")) {
                 System.out.println("Cannot delete user: User has associated records");
             } else {
                 System.out.println("Error deleting user: " + e.getMessage());
-            }
-            return false;
-        }
-    }
-    public boolean updateUser(users updatedUser) {
-        try (Connection connection = DriverManager.getConnection(DB_Connection.url, DB_Connection.user, DB_Connection.pass);
-             PreparedStatement update = connection.prepareStatement(
-                     "UPDATE " + DB_Connection.tab +
-                             " SET lastname = ?, firstname = ?, password = ?, email = ?, Gender = ?, `Limit` = ? " +
-                             "WHERE Id = ?")) {
-
-            if (!checkUser(updatedUser.getId())) {
-                System.out.println("No user found with ID: " + updatedUser.getId());
-                return false;
-            }
-
-            update.setString(1, updatedUser.getLastName());
-            update.setString(2, updatedUser.getFirstName());
-            update.setString(3, updatedUser.getPass());
-            update.setString(4, updatedUser.getEmail());
-            update.setString(5, updatedUser.getGender());
-            update.setInt(6, 3);
-            update.setInt(7, updatedUser.getId());
-
-            int rowsAffected = update.executeUpdate();
-
-            if (rowsAffected > 0) {
-                userCache.put(updatedUser.getId(), updatedUser);
-                System.out.println("User updated successfully");
-                return true;
-            } else {
-                System.out.println("Failed to update user with ID: " + updatedUser.getId());
-                return false;
-            }
-
-        } catch (SQLException e) {
-            if (e.getSQLState().equals("23000")) {
-                System.out.println("Error updating user: Constraint violation");
-            } else {
-                System.out.println("Error updating user: " + e.getMessage());
             }
             return false;
         }

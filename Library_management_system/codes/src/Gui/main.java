@@ -11,7 +11,7 @@ public class main {
 
             @Override
             public void run() {
-                new CreateAccountPage().setVisible(true);
+                new LoginPage().setVisible(true);
             }
 
     });

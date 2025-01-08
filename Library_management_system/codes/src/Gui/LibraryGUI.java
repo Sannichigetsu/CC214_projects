@@ -4,7 +4,6 @@ import javax.swing.*;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 
 public class LibraryGUI extends JFrame {
@@ -18,11 +17,13 @@ public class LibraryGUI extends JFrame {
         setSize(900, 600);
         setLocationRelativeTo(null);
 
-        // Load the image //need the absolute path and the picture for this
+        // Load the image from resources
         try {
-            bookshelfImage = ImageIO.read(new File("C:\\Users\\janlo\\IdeaProjects\\LIBRARY MANAGEMENT\\src\\bookshelf.jpg"));
+            // Ensure bookshelf.jpg is located in the "resources" folder of your project
+            bookshelfImage = ImageIO.read(getClass().getResource("/Images/bookshelf.jpg"));
         } catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Bookshelf image could not be loaded: " + e.getMessage());
+            bookshelfImage = null; // Fallback
         }
 
         // Create main panel with custom painting
@@ -36,8 +37,8 @@ public class LibraryGUI extends JFrame {
 
                 // Draw bookshelf image on the right side (smaller portion)
                 if (bookshelfImage != null) {
-                    g.drawImage(bookshelfImage, (int)(getWidth() * 0.6), 0,
-                            (int)(getWidth() * 0.4), getHeight(), null);
+                    g.drawImage(bookshelfImage, (int) (getWidth() * 0.6), 0,
+                            (int) (getWidth() * 0.4), getHeight(), null);
                 }
             }
         };

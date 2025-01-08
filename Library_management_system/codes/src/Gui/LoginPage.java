@@ -2,6 +2,7 @@ package Gui;
 
 import DSA.Admin.USER_DB;
 import DSA.Objects.users;
+import Gui.Admin.AdminDashboard;
 
 import javax.swing.*;
 import java.awt.*;
@@ -25,7 +26,8 @@ public class LoginPage extends JFrame {
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
-                ImageIcon imageIcon = new ImageIcon("C:\\Users\\janlo\\IdeaProjects\\LIBRARY MANAGEMENT\\src\\login.jpg");
+                // Absolute path to your image
+                ImageIcon imageIcon = new ImageIcon("C:\\Users\\Octob\\Documents\\GitHub\\CC214_projects\\Library_management_system\\codes\\src\\Images\\login.jpg");
                 Image image = imageIcon.getImage();
                 g.drawImage(image, 0, 0, getWidth(), getHeight(), this);
             }
@@ -64,10 +66,10 @@ public class LoginPage extends JFrame {
         mainPanel.add(passwordPlaceholder);
 
         // Login Button
-        JButton loginButton = createStyledButton("LOG IN", true);
-        loginButton.setBounds(75, 300, 250, 40);
-        loginButton.addActionListener(e -> handleLogin());
-        mainPanel.add(loginButton);
+            JButton loginButton = createStyledButton("LOG IN", true);
+            loginButton.setBounds(75, 300, 250, 40);
+            loginButton.addActionListener(e -> handleLogin());
+            mainPanel.add(loginButton);
 
         // Create Account Button
         JButton createAccountButton = createStyledButton("No Account? Click to Create", false);
@@ -91,49 +93,56 @@ public class LoginPage extends JFrame {
             return;
         }
 
+        if (admin(idText, password)) {
+            JOptionPane.showMessageDialog(this,
+                    "Admin login successful!",
+                    "Success",
+                    JOptionPane.INFORMATION_MESSAGE);
+            new AdminDashboard().setVisible(true);
+            this.dispose();
+            return;
+        }
+
         // Parse and validate ID
         try {
             int id = Integer.parseInt(idText);
-
-            // Check if user exists first
-//            if (!USER_DB.checkUser(id)) {
-//                JOptionPane.showMessageDialog(this,
-//                        "User ID not found",
-//                        "Login Error",
-//                        JOptionPane.ERROR_MESSAGE);
-//                return;
-//            }
-
-            // Validate credentials
             if (USER_DB.validate(id, password)) {
-                JOptionPane.showMessageDialog(this,
-                        "Login successful!",
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
+                // Create a new USER_DB instance to use its methods
+                USER_DB userDb = new USER_DB();
+                // Get the user object
+                users loggedInUser = userDb.getUser(id);
 
-                // Open main application window (implement this based on your needs)
-                LibraryGUI libraryGUI = new LibraryGUI();
-                libraryGUI.setVisible(true);
-                this.dispose();
+                if (loggedInUser != null) {
+                    JOptionPane.showMessageDialog(this,
+                            "Login successful!",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                    UserDashboard userDashboard = new UserDashboard(loggedInUser);
+                    userDashboard.setVisible(true);
+                    this.dispose();
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Error retrieving user data",
+                            "Login Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
             } else {
                 JOptionPane.showMessageDialog(this,
-                        "Invalid password",
+                        "Invalid credentials",
                         "Login Error",
                         JOptionPane.ERROR_MESSAGE);
             }
         } catch (NumberFormatException e) {
             JOptionPane.showMessageDialog(this,
-                    "Please enter a valid numeric ID",
+                    "Please enter a valid numeric ID for user login",
                     "Input Error",
                     JOptionPane.ERROR_MESSAGE);
         }
     }
-
     private void openCreateAccountPage() {
         CreateAccountPage createAccountPage = new CreateAccountPage();
         createAccountPage.setVisible(true);
     }
-
     // Rest of the existing methods remain the same...
 
     // Existing helper methods remain the same...
@@ -225,6 +234,13 @@ public class LoginPage extends JFrame {
         });
 
         return button;
+    }
+    public boolean admin(String Id, String pass){
+        if (pass.matches("145")&& Id.matches("admin")) return true;
+        if (!Id.matches("admin")) return false;
+        if (!pass.matches("admin")) return false;
+        return (Id.equals("admin") && pass.equals("admin")) ||
+                (Id.equals("admin") && pass.equals("145"));
     }
 
     public static void main(String[] args) {

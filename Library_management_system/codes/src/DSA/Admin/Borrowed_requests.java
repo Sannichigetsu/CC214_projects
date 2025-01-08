@@ -13,10 +13,9 @@ public class Borrowed_requests {
     private static Queue<BorrowRequest> borrowRequests = new LinkedList<>();
     private static List<BorrowRequest> confirmedRequests = new ArrayList<>();
 
-
     // Class to represent a borrow request
     public static class BorrowRequest {
-//        private Books book;
+        private Books book;  // Add reference to Books object
         private int Id;
         private String title;
         private String user;
@@ -25,114 +24,130 @@ public class Borrowed_requests {
         private int copies;
         private LocalDateTime borrowReqDate;
 
-
-        public BorrowRequest(int id, String title, String user, String author, int copies, String Status, LocalDateTime borrowReqDate) {
-//            this.book = book;
-            this.Id = id;
-            this.title = title;
+        // Updated constructor to take Books object
+        public BorrowRequest(Books book, String user, int copies, String status, LocalDateTime borrowReqDate) {
+            this.book = book;
+            this.Id = book.getISBN();  // Use book's ISBN
+            this.title = book.getTitle();
             this.user = user;
-            this.author = author;
-            this.status = Status;
-            this.copies=copies;
+            this.author = book.getAuthor();
+            this.status = status;
+            this.copies = copies;
             this.borrowReqDate = borrowReqDate;
         }
 
-        public BorrowRequest(int id, String userName, String bookName, String author, int copies, String status) {
-            this.Id = id;
-            this.title = title;
-            this.user = user;
-            this.author = author;
-            this.status = status;
-            this.copies=copies;
+        // Getters
+        public Books getBook() {
+            return book;  // Return the Books object
         }
 
-        // Getters
-//        public Books getBook() { return book; }
+        public int getBookISBN() {
+            return book.getISBN();  // Return ISBN from Books object
+        }
 
         public int getId() {
             return Id;
         }
+
         public String getTitle() {
             return title;
         }
-        public String getUser() { return user; }
-        public String getAuthor() { return author;}
-        public String getStatus() { return status; }
-        public void setStatus(String status) { this.status = status; }
+
+        public String getUser() {
+            return user;
+        }
+
+        public String getAuthor() {
+            return author;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
 
         public int getCopies() {
             return copies;
         }
-        public void setBorrowReqDate(LocalDateTime borrowReqDate) {this.borrowReqDate = borrowReqDate;}
-        public LocalDateTime getBorrowReqDate() {return borrowReqDate;}
 
+        public LocalDateTime getBorrowReqDate() {
+            return borrowReqDate;
+        }
 
+        public void setBorrowReqDate(LocalDateTime borrowReqDate) {
+            this.borrowReqDate = borrowReqDate;
+        }
     }
-    //todo fix this one
+
+    // Add a borrow request for a book
     public static boolean addBorrowRequest(Books book, String user) {
         if (book != null && user != null && !user.trim().isEmpty()) {
             if (book.isAvailable()) {  // Check availability before adding request
-                String currentDate = LocalDate.now().toString();
                 int copy = book.getAvailableCopy();
-               // BorrowRequest request = new BorrowRequest(book, user, currentDate,copy);
-             //   borrowRequests.offer(request);
+                BorrowRequest request = new BorrowRequest(book, user, copy, "PENDING", LocalDateTime.now());
+                borrowRequests.offer(request);
                 return true;
             }
         }
         return false;
     }
-//todo fix this one
+
+    // Confirm a borrow request
     public static boolean confirmRequest(String bookTitle, String user, int copy) {
         BorrowRequest request = findPendingRequest(bookTitle, user);
-//        if (request != null && request.getBook().isAvailable()) {  // Verify availability
+        if (request != null && request.getBook().isAvailable()) {  // Verify availability
             request.setStatus("CONFIRMED");
             borrowRequests.remove(request);
             confirmedRequests.add(request);
 
-//            Books book = request.ge;
-//            book.setBorrowed(true);
-//            book.setBorrower(user);
-//            book.setAvailableCopy(request.copies-copy);
+            Books book = request.getBook();  // Get the Books object
+            book.setBorrowed(true);
+            book.setBorrower(user);
+            book.setAvailableCopy(book.getAvailableCopy() - copy);
 
-
-            //AdminControls.updateBookStatus(book);
-            return true;
-//        }
-//        return false;
-    }
-
-    public static boolean rejectRequest(String bookTitle, String user) {
-        BorrowRequest request = findPendingRequest(bookTitle, user);
-        if (request != null) {
-            request.setStatus("REJECTED");
-            borrowRequests.remove(request);
-//            request.getTitle();
             return true;
         }
         return false;
     }
 
+    // Reject a borrow request
+    public static boolean rejectRequest(String bookTitle, String user) {
+        BorrowRequest request = findPendingRequest(bookTitle, user);
+        if (request != null) {
+            request.setStatus("REJECTED");
+            borrowRequests.remove(request);
+            return true;
+        }
+        return false;
+    }
+
+    // Find a pending request by book title and user
     private static BorrowRequest findPendingRequest(String bookTitle, String user) {
         return borrowRequests.stream()
-                .filter(req -> req.getTitle().equals(bookTitle)
-                        && req.getUser().equals(user))
+                .filter(req -> req.getTitle().equals(bookTitle) && req.getUser().equals(user))
                 .findFirst()
                 .orElse(null);
     }
 
+    // Get a list of all pending requests
     public static List<BorrowRequest> getPendingRequests() {
         return new ArrayList<>(borrowRequests);
     }
 
+    // Get a list of all confirmed requests
     public static List<BorrowRequest> getConfirmedRequests() {
         return new ArrayList<>(confirmedRequests);
     }
+
     // Process the next request in queue
     public static BorrowRequest processNextRequest() {
         return borrowRequests.poll();
     }
 
-    // Get number of pending requests
+    // Get the number of pending requests
     public static int getPendingRequestsCount() {
         return borrowRequests.size();
     }
@@ -142,7 +157,7 @@ public class Borrowed_requests {
         return !borrowRequests.isEmpty();
     }
 
-    // View next request without removing it
+    // View the next request without removing it
     public static BorrowRequest peekNextRequest() {
         return borrowRequests.peek();
     }
@@ -151,5 +166,4 @@ public class Borrowed_requests {
     public static void clearAllRequests() {
         borrowRequests.clear();
     }
-//    public static LocalDateTime
 }
